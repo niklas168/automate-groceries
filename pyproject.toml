@@ -11,6 +11,9 @@ python = "^3.12"
 fastapi = {extras = ["standard"], version = "^0.115.6"}
 bring-api = "^0.9.1"
 python-dotenv = "^1.0.1"
+solara = "^1.43.0"
+sqlalchemy = "^2.0.37"
+psycopg2-binary = "^2.9.10"
 
 
 [build-system]

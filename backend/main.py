@@ -61,20 +61,21 @@ async def delete_all_items():
 
 @app.get("/recipe")
 def get_recipe():
-    session=get_db_session()
-    results=session.query(Recipes).all()
-    return results
+    with get_db_session() as session:
+        response=session.query(Recipes).all()
+
+    return response
 
 @app.get("/ingredients/{recipe_name}")
 def get_ingredients(recipe_name:str):
-    session=get_db_session()
-    stmt = (
-        select(Ingredients.name)
-        .join(IngredientsRecipes, Ingredients.name == IngredientsRecipes.ingredient_name)
-        .where(IngredientsRecipes.recipe_name == recipe_name)
-    )
+    with get_db_session() as session:
+        stmt = (
+            select(Ingredients.name)
+            .join(IngredientsRecipes, Ingredients.name == IngredientsRecipes.ingredient_name)
+            .where(IngredientsRecipes.recipe_name == recipe_name)
+        )
 
-    result = session.execute(stmt).scalars().all()
+        result = session.execute(stmt).scalars().all()
     return result
 
 
@@ -90,9 +91,9 @@ def post_recipe(recipe_with_ingredients: RecipePostModel):
             recipe = Recipes(name=recipe_name)
             session.add(recipe)
         else:
-            raise HTTPException(
+            return Response(
                 status_code=404,
-                detail=f"Recipe already exists!"
+                description=f"Recipe already exists!"
             )
 
         # Add ingredients and link them to the recipe
@@ -123,9 +124,9 @@ def post_recipe(recipe_with_ingredients: RecipePostModel):
         raise http_exc
     except Exception as exc:
         session.rollback()
-        raise HTTPException(
+        return Response(
             status_code=500,
-            detail=f"An unexpected error occurred: {str(exc)}"
+            description=f"An unexpected error occurred: {str(exc)}"
         )
     finally:
         session.close()

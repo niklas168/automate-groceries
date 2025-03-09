@@ -51,7 +51,6 @@ def Page():
         load_meals()
 
     def add_items_to_groceries():
-        # todo: take meal.value and put it onto grocery list
         # get ingredients for selected meals
         item_list=[]
         for meal in meals.value:
@@ -76,8 +75,22 @@ def Page():
         pass
 
     def delete_recipe(column, row_index):
-        #TODO: delete recipe name = df of row x column y
-        pass
+        #identify recipe
+        recipe_name=df.value.loc[int(row_index), column]
+
+        # delete from db
+        url = os.getenv("BACKEND_HOST") + "/recipe"
+        params = {"recipe_name": recipe_name}
+        response=requests.delete(url=url, params=params)
+
+        # when successful delete from df
+        if response.status_code == 200:
+            df.value.drop(index=int(row_index), inplace=True)
+        else:
+            print(f"Failed to delete {recipe_name}: {response.status_code}, {response.text}")
+
+        load_meals()
+
 
     dotenv.load_dotenv()
     solara.use_effect(load_meals, dependencies=[])

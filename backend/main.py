@@ -132,3 +132,31 @@ def post_recipe(recipe_with_ingredients: RecipePostModel):
         session.close()
 
 
+
+@app.delete("/recipe")
+def delete_recipe(recipe_name: str):
+    session = get_db_session()
+
+    try:
+        # Check if the recipe exists
+        recipe = session.query(Recipes).filter_by(name=recipe_name).first()
+        if not recipe:
+            return Response(status_code=404, description="Recipe not found")
+
+        # Delete the linked ingredients from IngredientsRecipes (but keep ingredients themselves)
+        session.query(IngredientsRecipes).filter_by(recipe_name=recipe_name).delete()
+
+        # Delete the recipe itself
+        session.delete(recipe)
+
+        # Commit changes
+        session.commit()
+
+        return {"message": f"Recipe '{recipe_name}' deleted successfully"}
+
+    except Exception as exc:
+        session.rollback()
+        return Response(status_code=500, detail=f"An unexpected error occurred: {str(exc)}")
+    finally:
+        session.close()
+

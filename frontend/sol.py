@@ -52,7 +52,27 @@ def Page():
 
     def add_items_to_groceries():
         # todo: take meal.value and put it onto grocery list
-        meals.value=[]
+        # get ingredients for selected meals
+        item_list=[]
+        for meal in meals.value:
+            url = os.getenv("BACKEND_HOST") + "/ingredients/"+meal
+            response=requests.get(url=url)
+
+            if response.status_code == 200:
+                item_list.extend(response.json())
+            else:
+                print(f"Failed to fetch {meal}: {response.status_code}, {response.text}")
+
+        #add those ingredients to groceries
+        url = os.getenv("BACKEND_HOST") + "/items"
+        list_of_item_dicts=[{"itemId":item_name} for item_name in item_list]
+
+        response=requests.post(url=url,json=list_of_item_dicts)
+        if response.status_code != 200:
+            print(f"Failed to post {list_of_item_dicts}: {response.status_code}, {response.text}")
+
+        # reset meals
+        meals.value = []
         pass
 
     def delete_recipe(column, row_index):

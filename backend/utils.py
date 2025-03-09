@@ -18,7 +18,7 @@ async def create_bring_session():
     session = aiohttp.ClientSession()
     bring = Bring(session, mail, password)
     await bring.login()
-    return bring, session
+    return (bring, session)
 
 
 async def get_list_id(bring_instance):

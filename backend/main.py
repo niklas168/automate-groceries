@@ -32,15 +32,15 @@ async def get_items()-> list[dict]:
 
 
 @app.post("/items")
-async def post_list(item_dict:dict):
-    bring_instance, session = create_bring_session()
+async def post_list(list_of_items_dict:list[dict]):
+    bring_instance, session = await create_bring_session()
     list_id=await get_list_id(bring_instance= bring_instance)
     try:
         await bring_instance.batch_update_list(
             list_id,
-            item_dict,
+            list_of_items_dict,
             BringItemOperation.ADD)
-        return Response(status_code=200)
+        return Response(description="Posted succesfully", status_code=200)
     finally:
         await session.close()
 

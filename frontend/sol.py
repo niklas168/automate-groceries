@@ -7,23 +7,13 @@ import pandas as pd
 
 import solara
 
-data = {
-    "Recipe Name": ["Pancakes", "Spaghetti Carbonara", "Guacamole", "Chicken Curry"],
-    "Ingredients": [
-        "Flour, Milk, Eggs, Sugar, Baking Powder, Salt",
-        "Spaghetti, Eggs, Parmesan Cheese, Pancetta, Black Pepper, Salt",
-        "Avocado, Lime Juice, Onion, Tomato, Cilantro, Salt",
-        "Chicken, Curry Powder, Coconut Milk, Onion, Garlic, Ginger, Tomato"
-    ]
-}
-
 recipe_name = solara.reactive("")
 ingredients = solara.reactive([])
 ingredient= solara.reactive("")
-
+#TODO: Why df in the first place, maybe should display ingredients(probably too much info, so maybe dynamic aufklappen)
 df=solara.reactive(pd.DataFrame(columns=["Recipe Name"]))
-all_meals=df.value["Recipe Name"].to_list()
-meals=solara.reactive("select meals ...")
+#all_meals=df.value["Recipe Name"].to_list()
+meals=solara.reactive([])
 
 @solara.component
 def Page():
@@ -54,7 +44,7 @@ def Page():
         }
 
         url = os.getenv("BACKEND_HOST")+"/recipe"
-        response=requests.post(url=url, json=body)
+        requests.post(url=url, json=body)
 
         #resetting inputs
         ingredients.value=[]
@@ -71,14 +61,14 @@ def Page():
         pass
 
     dotenv.load_dotenv()
-    load_meals()
+    solara.use_effect(load_meals, dependencies=[])
+
     with solara.lab.Tabs():
         with solara.lab.Tab("Rezeptverwaltung"):
             with solara.Card():
                 #solara.Style(css)
                 cell_actions = [solara.CellAction(icon="mdi-delete", name="Delete Recipe", on_click=delete_recipe)]
                 with solara.Column():
-                    # TODO: get all recipes in the database here
                     solara.DataFrame(df.value, cell_actions=cell_actions)
                     solara.Button("Add recipe", on_click=lambda: show_dialog.set(True),classes=["button-1"])
 
@@ -90,5 +80,6 @@ def Page():
 
         with solara.lab.Tab("Einkaufslistenvewaltung"):
             with solara.Card():
-                solara.SelectMultiple(label="Gerichte", values=meals.value, all_values=all_meals)
+                solara.SelectMultiple(label="Gerichte", values=meals, all_values=df.value["Recipe Name"].to_list())
                 solara.Button(label="Add recipes to grocery list", on_click=add_items_to_groceries)
+                solara.Markdown(f"**Selected**: {meals.value}")

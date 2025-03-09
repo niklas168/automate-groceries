@@ -37,7 +37,6 @@ def Page():
         ingredient.value=""
 
     def add_recipe_to_db():
-        #TODO: make conn to db and add recipe here
         body={
             "recipe_name": recipe_name.value,
             "ingredients": ingredients.value,

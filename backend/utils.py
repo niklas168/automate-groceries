@@ -21,7 +21,8 @@ async def create_bring_session():
     return bring, session
 
 
-async def get_list_id(bring_instance, list_name):
+async def get_list_id(bring_instance):
+    list_name=os.getenv("BRING_LIST")
     all_lists = await bring_instance.load_lists()
     all_lists = all_lists["lists"]
     grocery_list = next((item for item in all_lists if item.get("name") == list_name), None)

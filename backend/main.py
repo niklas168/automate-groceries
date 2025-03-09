@@ -23,7 +23,7 @@ app = FastAPI()
 async def get_items()-> list[dict]:
     bring_instance, session = await create_bring_session()
     try:
-        list_id=await get_list_id(bring_instance= bring_instance, list_name="Einkoofen")
+        list_id=await get_list_id(bring_instance= bring_instance)
         items = await bring_instance.get_list(list_id)
         return items["purchase"]
 
@@ -34,7 +34,7 @@ async def get_items()-> list[dict]:
 @app.post("/items")
 async def post_list(item_dict:dict):
     bring_instance, session = create_bring_session()
-    list_id=await get_list_id(bring_instance= bring_instance, list_name="Einkoofen")
+    list_id=await get_list_id(bring_instance= bring_instance)
     try:
         await bring_instance.batch_update_list(
             list_id,
@@ -50,7 +50,7 @@ async def delete_all_items():
     bring_instance, session = await create_bring_session()
     try:
         items=await get_items()
-        list_id=await get_list_id(bring_instance= bring_instance, list_name="Einkoofen")
+        list_id=await get_list_id(bring_instance= bring_instance)
         await bring_instance.batch_update_list(
                 list_id,
                 items,

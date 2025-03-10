@@ -14,7 +14,8 @@ ingredient= solara.reactive("")
 df=solara.reactive(pd.DataFrame(columns=["Recipe Name"]))
 #all_meals=df.value["Recipe Name"].to_list()
 meals=solara.reactive([])
-
+dotenv.load_dotenv()
+API_KEY= os.getenv("API_KEY")
 @solara.component
 def Page():
 
@@ -23,7 +24,7 @@ def Page():
     def load_meals():
 
         url=os.getenv("BACKEND_HOST")+"/recipe"
-        response=requests.get(url=url)
+        response=requests.get(url=url, headers={"X-API-Key": API_KEY})
 
         result = []
         for dict_item in response.json():
@@ -43,7 +44,7 @@ def Page():
         }
 
         url = os.getenv("BACKEND_HOST")+"/recipe"
-        requests.post(url=url, json=body)
+        requests.post(url=url, json=body, headers={"X-API-Key": API_KEY})
 
         #resetting inputs
         ingredients.value=[]
@@ -55,7 +56,7 @@ def Page():
         item_list=[]
         for meal in meals.value:
             url = os.getenv("BACKEND_HOST") + "/ingredients/"+meal
-            response=requests.get(url=url)
+            response=requests.get(url=url, headers={"X-API-Key": API_KEY})
 
             if response.status_code == 200:
                 item_list.extend(response.json())
@@ -66,7 +67,7 @@ def Page():
         url = os.getenv("BACKEND_HOST") + "/items"
         list_of_item_dicts=[{"itemId":item_name} for item_name in item_list]
 
-        response=requests.post(url=url,json=list_of_item_dicts)
+        response=requests.post(url=url,json=list_of_item_dicts, headers={"X-API-Key": API_KEY})
         if response.status_code != 200:
             print(f"Failed to post {list_of_item_dicts}: {response.status_code}, {response.text}")
 
@@ -81,7 +82,7 @@ def Page():
         # delete from db
         url = os.getenv("BACKEND_HOST") + "/recipe"
         params = {"recipe_name": recipe_name}
-        response=requests.delete(url=url, params=params)
+        response=requests.delete(url=url, params=params, headers={"X-API-Key": API_KEY})
 
         # when successful delete from df
         if response.status_code == 200:
@@ -92,7 +93,6 @@ def Page():
         load_meals()
 
 
-    dotenv.load_dotenv()
     solara.use_effect(load_meals, dependencies=[])
 
     with solara.lab.Tabs():

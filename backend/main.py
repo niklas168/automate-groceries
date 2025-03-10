@@ -1,10 +1,10 @@
+import os
 from http.client import HTTPException
-from typing import Union
-import json
 
 from bring_api import BringItemOperation
-from fastapi import FastAPI
+from fastapi import FastAPI, Depends
 from fastapi.openapi.models import Response
+from fastapi.security import APIKeyHeader
 
 from db.models import Recipes, Ingredients, IngredientsRecipes
 from db.query_models import RecipePostModel
@@ -17,10 +17,17 @@ from sqlalchemy import select
 app = FastAPI()
 
 
+API_KEY = os.getenv("API_KEY")
 
+api_key_header = APIKeyHeader(name="X-API-Key", auto_error=True)
+
+def validate_api_key(api_key: str = Depends(api_key_header)):
+    if api_key != API_KEY:
+        return Response(status_code=401, description="Invalid API key")
+    return {"user": "Authorized User"}
 
 @app.get("/items")
-async def get_items()-> list[dict]:
+async def get_items(user: dict = Depends(validate_api_key))-> list[dict]:
     bring_instance, session = await create_bring_session()
     try:
         list_id=await get_list_id(bring_instance= bring_instance)
@@ -32,7 +39,7 @@ async def get_items()-> list[dict]:
 
 
 @app.post("/items")
-async def post_list(list_of_items_dict:list[dict]):
+async def post_list(list_of_items_dict:list[dict], user: dict = Depends(validate_api_key)):
     bring_instance, session = await create_bring_session()
     list_id=await get_list_id(bring_instance= bring_instance)
     try:
@@ -46,7 +53,7 @@ async def post_list(list_of_items_dict:list[dict]):
 
 
 @app.delete("/items")
-async def delete_all_items():
+async def delete_all_items(user: dict = Depends(validate_api_key)):
     bring_instance, session = await create_bring_session()
     try:
         items=await get_items()
@@ -60,14 +67,14 @@ async def delete_all_items():
         await session.close()
 
 @app.get("/recipe")
-def get_recipe():
+def get_recipe(user: dict = Depends(validate_api_key)):
     with get_db_session() as session:
         response=session.query(Recipes).all()
 
     return response
 
 @app.get("/ingredients/{recipe_name}")
-def get_ingredients(recipe_name:str):
+def get_ingredients(recipe_name:str, user: dict = Depends(validate_api_key)):
     with get_db_session() as session:
         stmt = (
             select(Ingredients.name)
@@ -80,7 +87,7 @@ def get_ingredients(recipe_name:str):
 
 
 @app.post("/recipe")
-def post_recipe(recipe_with_ingredients: RecipePostModel):
+def post_recipe(recipe_with_ingredients: RecipePostModel, user: dict = Depends(validate_api_key)):
     session = get_db_session()
     try:
         recipe_name = recipe_with_ingredients.recipe_name
@@ -134,7 +141,7 @@ def post_recipe(recipe_with_ingredients: RecipePostModel):
 
 
 @app.delete("/recipe")
-def delete_recipe(recipe_name: str):
+def delete_recipe(recipe_name: str, user: dict = Depends(validate_api_key)):
     session = get_db_session()
 
     try:

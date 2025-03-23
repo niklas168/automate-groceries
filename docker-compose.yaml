@@ -27,6 +27,9 @@ services:
       - POSTGRES_HOST=${POSTGRES_HOST}
       - POSTGRES_PORT=${POSTGRES_PORT}
       - POSTGRES_DB=${POSTGRES_DB}
+      - BRING_MAIL=${BRING_MAIL}
+      - BRING_LIST=${BRING_LIST}
+      - BRING_PASSWORD=${BRING_PASSWORD}
     #restart: always
 
   frontend:
